@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.subunit.Group1 { fill: #F5E9CA; }
+.subunit.Group2 { fill: #6DA690; }
+.subunit.Group3 { fill: #BAC366; }
+.subunit.Group4 { fill: #FE4D57; }
+.subunit.Group5 { fill: #1D0463; }
+.subunit.Group0 { fill: #000000; }
+
+.subunit-boundary {
+  fill: none;
+  stroke: #777;
+  stroke-width: 1px;
+  stroke-linejoin: round;
+}
+
+.overlay {
+  fill: none;
+  pointer-events: all;
+}
+
+.hidden {
+        display: none;
+    }
+
+p {
+  font-size: 13px;
+  /* color: ; */
+}
+
+div.tooltip {
+        color: #222;
+        background-color: #fff;
+        padding: .5em;
+        text-shadow: #f5f5f5 0 1px 0;
+        border-radius: 2px;
+        opacity: 0.9;
+        position: absolute;
+    }
+
+</style>
+<body>
+<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="//d3js.org/topojson.v1.min.js"></script>
+<script>
+
+var width = 1100,
+    height = 750;
+
+ var projection = d3.geo.mercator()
+    .translate([width / 2, height / 2])
+    .scale((width - 1) / 2 / Math.PI);
+
+var zoom = d3.behavior.zoom()
+    .scaleExtent([1, 8])
+    .on("zoom", zoomed);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height)
+
+var tooltip = d3.select('body').append('div')
+            .attr('class', 'hidden tooltip');
+
+svg.append("rect")
+    .attr("class", "overlay")
+    .attr("width", width)
+    .attr("height", height);
+
+// svg
+//     .call(zoom)
+//     .call(zoom.event);
+
+var colorcode;
+
+d3.json("randomcountries.json", function(error, data) {
+	if (error) return console.error(error);
+	colorcode = data;
+});
+
+d3.json("world.json", function(error, world) {
+  if (error) return console.error(error);
+
+  var subunits = topojson.feature(world, world.objects.world_subunits);
+
+  var path = d3.geo.path()
+	.projection(projection);
+
+  var countries = svg.selectAll(".subunit")
+    .data(topojson.feature(world, world.objects.world_subunits).features)
+  .enter();
+
+  countries.append("path")
+    .attr("class", function(d) { return "subunit-boundary subunit Group" + colorcode[d.id] + " " + d.id})
+    .attr("d", path)
+    .on("mousemove", mouseover)
+    .on("mouseout", mouseout);
+
+});
+
+function zoomed() {
+  svg.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+  svg.select("subunit-boundary").style("stroke-width", 1 / d3.event.scale + "px");
+}
+
+function mouseover(d) {
+  var mouse = d3.mouse(svg.node()).map(function(d) { return parseInt(d); });
+  svg.selectAll("." + d.id)
+    .attr("class", function(d) { return "subunit-boundary subunit Group0" + " " + d.id});
+  tooltip.classed('hidden', false)
+          .attr('style', 'left:' + (mouse[0] + 15) + 'px; top:' + (mouse[1] - 35) + 'px')
+          .html("<p>" + d.properties.name + "</p>");
+}
+
+function mouseout(d) {
+  svg.selectAll("." + d.id)
+    .attr("class", function(d) { return "subunit-boundary subunit Group" + colorcode[d.id] + " " + d.id});
+  tooltip.classed('hidden', true);
+  
+}
+
+d3.select(self.frameElement).style("height", height + "px");
+
+</script>
