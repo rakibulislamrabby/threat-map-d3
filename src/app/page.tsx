@@ -15,14 +15,7 @@ export default function Home() {
         }}>
           Interactive World Map with D3.js
         </h1>
-        <p style={{ 
-          textAlign: 'center', 
-          marginBottom: '2rem',
-          color: '#666',
-          fontSize: '1rem'
-        }}>
-          Hover over countries to see their names. Use mouse wheel to zoom and drag to pan.
-        </p>
+       
         <WorldMap />
       </main>
     </div>

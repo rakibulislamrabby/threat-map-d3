@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import * as topojson from 'topojson-client';
 import colorData from '../data/randomcountries.json';
@@ -9,12 +9,17 @@ import worldData from '../data/world.json';
 const WorldMap: React.FC = () => {
   const svgRef = useRef<SVGSVGElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const [isClient, setIsClient] = useState(false);
 
   const width = 1100;
   const height = 750;
 
   useEffect(() => {
-    if (!svgRef.current || !tooltipRef.current) return;
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient || !svgRef.current || !tooltipRef.current) return;
 
     const svg = d3.select(svgRef.current);
     const tooltip = d3.select(tooltipRef.current);
@@ -27,13 +32,23 @@ const WorldMap: React.FC = () => {
       .translate([width / 2, height / 2])
       .scale((width - 1) / 2 / Math.PI);
 
-    // Set up zoom behavior
+    // Set up zoom behavior - zoom only, no pan
     const zoom = d3.zoom<SVGSVGElement, unknown>()
       .scaleExtent([1, 8])
+      .filter((event) => {
+        // Only allow wheel events (zoom), block drag events (pan)
+        return event.type === 'wheel';
+      })
       .on("zoom", (event) => {
         const { transform } = event;
+        // Always zoom from center, ignore any translation
+        const centerTransform = d3.zoomIdentity
+          .translate(width / 2, height / 2)
+          .scale(transform.k)
+          .translate(-width / 2, -height / 2);
+        
         svg.selectAll('.countries-group')
-          .attr("transform", transform.toString());
+          .attr("transform", centerTransform.toString());
         
         // Adjust stroke width based on zoom level
         svg.selectAll("path")
@@ -86,13 +101,13 @@ const WorldMap: React.FC = () => {
         d3.select(this)
           .style("fill", "#000000");
         
-        // Show tooltip with country name only
-        const [mouseX, mouseY] = d3.pointer(event, document.body);
+        // Show tooltip with country name only - at mouse position relative to SVG
+        const [mouseX, mouseY] = d3.pointer(event, svg.node());
         
         tooltip
           .style("display", "block")
-          .style("left", `${mouseX + 15}px`)
-          .style("top", `${mouseY - 35}px`)
+          .style("left", `${mouseX + 5}px`)
+          .style("top", `${mouseY - 25}px`)
           .html(`<p>${feature.properties.name}</p>`);
       })
       .on("mouseout", function(event, d: any) {
@@ -108,7 +123,26 @@ const WorldMap: React.FC = () => {
         // Hide tooltip
         tooltip.style("display", "none");
       });
-  }, []);
+  }, [isClient]);
+
+  if (!isClient) {
+    return (
+      <div style={{
+        width: '100%',
+        height: '100vh',
+        position: 'relative',
+        overflow: 'hidden',
+        background: '#ffffff',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{ color: '#333', fontSize: '16px' }}>
+          Loading world map...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{
