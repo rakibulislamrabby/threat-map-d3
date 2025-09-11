@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Interactive World Map with D3.js",
-  description: "A beautiful interactive world map built with D3.js and Next.js featuring country hover effects and zoom functionality",
+  title: "Live Cyber Threat Map",
+  description: "Real-time visualization of global cyber threats and attacks with animated arcs showing threat vectors between countries",
 };
 
 export default function RootLayout({

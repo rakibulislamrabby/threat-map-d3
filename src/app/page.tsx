@@ -34,7 +34,7 @@ export default function Home() {
           fontSize: '2rem',
           fontWeight: 'bold'
         }}>
-          Interactive World Map with D3.js
+          Live Cyber Threat Map
         </h1>
         <WorldMap />
       </main>

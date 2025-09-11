@@ -1,0 +1,567 @@
+{
+  "hubs": [
+    {
+      "id": "HUB001",
+      "country": "SGP",
+      "name": "Singapore Hub",
+      "type": "primary",
+      "importance": 5
+    },
+    {
+      "id": "HUB002", 
+      "country": "USA",
+      "name": "US Command Center",
+      "type": "primary",
+      "importance": 5
+    },
+    {
+      "id": "HUB003",
+      "country": "NLD",
+      "name": "Netherlands Hub",
+      "type": "secondary",
+      "importance": 4
+    }
+  ],
+  "attacks": [
+    {
+      "id": "ATK001",
+      "source": "CHN",
+      "target": "SGP",
+      "type": "DDoS",
+      "severity": "critical",
+      "timestamp": "2024-01-15T10:30:00Z",
+      "duration": 3000,
+      "description": "Major DDoS attack on Singapore financial hub"
+    },
+    {
+      "id": "ATK002", 
+      "source": "RUS",
+      "target": "SGP",
+      "type": "Cyber Espionage",
+      "severity": "high",
+      "timestamp": "2024-01-15T11:15:00Z",
+      "duration": 4000,
+      "description": "Advanced persistent threat targeting Singapore infrastructure"
+    },
+    {
+      "id": "ATK003",
+      "source": "PRK",
+      "target": "SGP",
+      "type": "Banking Trojan",
+      "severity": "high",
+      "timestamp": "2024-01-15T12:45:00Z", 
+      "duration": 2500,
+      "description": "Financial malware targeting Singapore banking sector"
+    },
+    {
+      "id": "ATK010",
+      "source": "JPN",
+      "target": "SGP",
+      "type": "Phishing",
+      "severity": "high",
+      "timestamp": "2024-01-15T19:45:00Z",
+      "duration": 3000,
+      "description": "Regional phishing campaign targeting Singapore"
+    },
+    {
+      "id": "ATK011",
+      "source": "AUS",
+      "target": "SGP",
+      "type": "Wiper Attack",
+      "severity": "critical",
+      "timestamp": "2024-01-15T20:20:00Z",
+      "duration": 4000,
+      "description": "Destructive attack on Singapore's digital infrastructure"
+    },
+    {
+      "id": "ATK012",
+      "source": "IND",
+      "target": "SGP",
+      "type": "Social Engineering",
+      "severity": "high",
+      "timestamp": "2024-01-15T21:10:00Z",
+      "duration": 3200,
+      "description": "Social engineering attack targeting Singapore government"
+    },
+    {
+      "id": "ATK013",
+      "source": "THA",
+      "target": "SGP",
+      "type": "Malware",
+      "severity": "medium",
+      "timestamp": "2024-01-15T22:00:00Z",
+      "duration": 2800,
+      "description": "Malware propagation from Thailand to Singapore"
+    },
+    {
+      "id": "ATK014",
+      "source": "VNM",
+      "target": "SGP",
+      "type": "Data Breach",
+      "severity": "high",
+      "timestamp": "2024-01-15T22:30:00Z",
+      "duration": 3500,
+      "description": "Data exfiltration targeting Singapore tech sector"
+    },
+    {
+      "id": "ATK015",
+      "source": "MYS",
+      "target": "SGP",
+      "type": "Supply Chain Attack",
+      "severity": "medium",
+      "timestamp": "2024-01-15T23:00:00Z",
+      "duration": 2500,
+      "description": "Supply chain compromise targeting Singapore"
+    },
+    {
+      "id": "ATK016",
+      "source": "IDN",
+      "target": "SGP",
+      "type": "Phishing",
+      "severity": "medium",
+      "timestamp": "2024-01-15T23:30:00Z",
+      "duration": 2200,
+      "description": "Regional phishing campaign from Indonesia"
+    },
+    {
+      "id": "ATK017",
+      "source": "PHL",
+      "target": "SGP",
+      "type": "DDoS",
+      "severity": "high",
+      "timestamp": "2024-01-16T00:00:00Z",
+      "duration": 3000,
+      "description": "DDoS attack from Philippines targeting Singapore"
+    },
+    {
+      "id": "ATK018",
+      "source": "MMR",
+      "target": "SGP",
+      "type": "Cyber Espionage",
+      "severity": "medium",
+      "timestamp": "2024-01-16T00:30:00Z",
+      "duration": 4000,
+      "description": "Espionage campaign targeting Singapore infrastructure"
+    },
+    {
+      "id": "ATK019",
+      "source": "KHM",
+      "target": "SGP",
+      "type": "Banking Trojan",
+      "severity": "medium",
+      "timestamp": "2024-01-16T01:00:00Z",
+      "duration": 2500,
+      "description": "Financial malware from Cambodia"
+    },
+    {
+      "id": "ATK020",
+      "source": "LAO",
+      "target": "SGP",
+      "type": "Social Engineering",
+      "severity": "low",
+      "timestamp": "2024-01-16T01:30:00Z",
+      "duration": 2000,
+      "description": "Social engineering attack from Laos"
+    },
+    {
+      "id": "ATK021",
+      "source": "BGD",
+      "target": "SGP",
+      "type": "Malware",
+      "severity": "medium",
+      "timestamp": "2024-01-16T02:00:00Z",
+      "duration": 2800,
+      "description": "Malware propagation from Bangladesh"
+    },
+    {
+      "id": "ATK022",
+      "source": "PAK",
+      "target": "SGP",
+      "type": "Infrastructure Attack",
+      "severity": "high",
+      "timestamp": "2024-01-16T02:30:00Z",
+      "duration": 4500,
+      "description": "Infrastructure attack from Pakistan"
+    },
+    {
+      "id": "ATK023",
+      "source": "AFG",
+      "target": "SGP",
+      "type": "Cyber Espionage",
+      "severity": "medium",
+      "timestamp": "2024-01-16T03:00:00Z",
+      "duration": 3500,
+      "description": "Espionage campaign from Afghanistan"
+    },
+    {
+      "id": "ATK024",
+      "source": "IRN",
+      "target": "SGP",
+      "type": "Wiper Attack",
+      "severity": "critical",
+      "timestamp": "2024-01-16T03:30:00Z",
+      "duration": 5000,
+      "description": "Destructive attack from Iran targeting Singapore"
+    },
+    {
+      "id": "ATK025",
+      "source": "TUR",
+      "target": "SGP",
+      "type": "Data Breach",
+      "severity": "high",
+      "timestamp": "2024-01-16T04:00:00Z",
+      "duration": 3200,
+      "description": "Data breach from Turkey targeting Singapore"
+    },
+    {
+      "id": "ATK026",
+      "source": "EGY",
+      "target": "SGP",
+      "type": "Phishing",
+      "severity": "medium",
+      "timestamp": "2024-01-16T04:30:00Z",
+      "duration": 2500,
+      "description": "Phishing campaign from Egypt"
+    },
+    {
+      "id": "ATK027",
+      "source": "SAU",
+      "target": "SGP",
+      "type": "Supply Chain Attack",
+      "severity": "high",
+      "timestamp": "2024-01-16T05:00:00Z",
+      "duration": 3800,
+      "description": "Supply chain attack from Saudi Arabia"
+    },
+    {
+      "id": "ATK028",
+      "source": "ZAF",
+      "target": "SGP",
+      "type": "Malware",
+      "severity": "medium",
+      "timestamp": "2024-01-16T05:30:00Z",
+      "duration": 2800,
+      "description": "Malware from South Africa targeting Singapore"
+    },
+    {
+      "id": "ATK029",
+      "source": "BRA",
+      "target": "SGP",
+      "type": "Banking Trojan",
+      "severity": "high",
+      "timestamp": "2024-01-16T06:00:00Z",
+      "duration": 3000,
+      "description": "Banking malware from Brazil"
+    },
+    {
+      "id": "ATK030",
+      "source": "ARG",
+      "target": "SGP",
+      "type": "DDoS",
+      "severity": "medium",
+      "timestamp": "2024-01-16T06:30:00Z",
+      "duration": 2500,
+      "description": "DDoS attack from Argentina"
+    },
+    {
+      "id": "ATK031",
+      "source": "MEX",
+      "target": "SGP",
+      "type": "Cyber Espionage",
+      "severity": "medium",
+      "timestamp": "2024-01-16T07:00:00Z",
+      "duration": 3500,
+      "description": "Espionage from Mexico targeting Singapore"
+    },
+    {
+      "id": "ATK032",
+      "source": "CAN",
+      "target": "SGP",
+      "type": "IP Theft",
+      "severity": "high",
+      "timestamp": "2024-01-16T07:30:00Z",
+      "duration": 4000,
+      "description": "IP theft from Canada targeting Singapore"
+    },
+    {
+      "id": "ATK033",
+      "source": "GBR",
+      "target": "SGP",
+      "type": "Social Engineering",
+      "severity": "high",
+      "timestamp": "2024-01-16T08:00:00Z",
+      "duration": 3000,
+      "description": "Social engineering from UK targeting Singapore"
+    },
+    {
+      "id": "ATK034",
+      "source": "FRA",
+      "target": "SGP",
+      "type": "Data Breach",
+      "severity": "medium",
+      "timestamp": "2024-01-16T08:30:00Z",
+      "duration": 2800,
+      "description": "Data breach from France"
+    },
+    {
+      "id": "ATK047",
+      "source": "UZB",
+      "target": "SGP",
+      "type": "Phishing",
+      "severity": "low",
+      "timestamp": "2024-01-16T15:00:00Z",
+      "duration": 2000,
+      "description": "Phishing from Uzbekistan"
+    },
+    {
+      "id": "ATK048",
+      "source": "TKM",
+      "target": "SGP",
+      "type": "Banking Trojan",
+      "severity": "medium",
+      "timestamp": "2024-01-16T15:30:00Z",
+      "duration": 2500,
+      "description": "Banking malware from Turkmenistan"
+    },
+    {
+      "id": "ATK049",
+      "source": "KGZ",
+      "target": "SGP",
+      "type": "Malware",
+      "severity": "low",
+      "timestamp": "2024-01-16T16:00:00Z",
+      "duration": 2200,
+      "description": "Malware from Kyrgyzstan"
+    },
+    {
+      "id": "ATK050",
+      "source": "TJK",
+      "target": "SGP",
+      "type": "DDoS",
+      "severity": "medium",
+      "timestamp": "2024-01-16T16:30:00Z",
+      "duration": 2500,
+      "description": "DDoS attack from Tajikistan"
+    },
+    {
+      "id": "ATK051",
+      "source": "MNG",
+      "target": "SGP",
+      "type": "Cyber Espionage",
+      "severity": "low",
+      "timestamp": "2024-01-16T17:00:00Z",
+      "duration": 3000,
+      "description": "Espionage from Mongolia"
+    },
+    {
+      "id": "ATK052",
+      "source": "NPL",
+      "target": "SGP",
+      "type": "Supply Chain Attack",
+      "severity": "medium",
+      "timestamp": "2024-01-16T17:30:00Z",
+      "duration": 3200,
+      "description": "Supply chain attack from Nepal"
+    },
+    {
+      "id": "ATK053",
+      "source": "BTN",
+      "target": "SGP",
+      "type": "Phishing",
+      "severity": "low",
+      "timestamp": "2024-01-16T18:00:00Z",
+      "duration": 2000,
+      "description": "Phishing from Bhutan"
+    },
+    {
+      "id": "ATK054",
+      "source": "LKA",
+      "target": "SGP",
+      "type": "Malware",
+      "severity": "medium",
+      "timestamp": "2024-01-16T18:30:00Z",
+      "duration": 2800,
+      "description": "Malware from Sri Lanka"
+    },
+    {
+      "id": "ATK055",
+      "source": "MDV",
+      "target": "SGP",
+      "type": "Data Breach",
+      "severity": "low",
+      "timestamp": "2024-01-16T19:00:00Z",
+      "duration": 2500,
+      "description": "Data breach from Maldives"
+    },
+    {
+      "id": "ATK056",
+      "source": "BRN",
+      "target": "SGP",
+      "type": "Social Engineering",
+      "severity": "medium",
+      "timestamp": "2024-01-16T19:30:00Z",
+      "duration": 2500,
+      "description": "Social engineering from Brunei"
+    },
+    {
+      "id": "ATK057",
+      "source": "TWN",
+      "target": "SGP",
+      "type": "IP Theft",
+      "severity": "high",
+      "timestamp": "2024-01-16T20:00:00Z",
+      "duration": 4000,
+      "description": "IP theft from Taiwan targeting Singapore"
+    },
+    {
+      "id": "ATK058",
+      "source": "HKG",
+      "target": "SGP",
+      "type": "Banking Trojan",
+      "severity": "high",
+      "timestamp": "2024-01-16T20:30:00Z",
+      "duration": 3000,
+      "description": "Banking malware from Hong Kong"
+    },
+    {
+      "id": "ATK059",
+      "source": "MAC",
+      "target": "SGP",
+      "type": "Malware",
+      "severity": "medium",
+      "timestamp": "2024-01-16T21:00:00Z",
+      "duration": 2500,
+      "description": "Malware from Macau"
+    },
+    {
+      "id": "ATK060",
+      "source": "NOR",
+      "target": "SGP",
+      "type": "Cyber Espionage",
+      "severity": "high",
+      "timestamp": "2024-01-16T21:30:00Z",
+      "duration": 4000,
+      "description": "Espionage from Norway targeting Singapore"
+    },
+    {
+      "id": "ATK061",
+      "source": "SWE",
+      "target": "SGP",
+      "type": "Data Breach",
+      "severity": "medium",
+      "timestamp": "2024-01-16T22:00:00Z",
+      "duration": 3000,
+      "description": "Data breach from Sweden"
+    },
+    {
+      "id": "ATK062",
+      "source": "FIN",
+      "target": "SGP",
+      "type": "Infrastructure Attack",
+      "severity": "high",
+      "timestamp": "2024-01-16T22:30:00Z",
+      "duration": 4500,
+      "description": "Infrastructure attack from Finland"
+    },
+    {
+      "id": "ATK063",
+      "source": "DNK",
+      "target": "SGP",
+      "type": "Supply Chain Attack",
+      "severity": "medium",
+      "timestamp": "2024-01-16T23:00:00Z",
+      "duration": 3200,
+      "description": "Supply chain attack from Denmark"
+    },
+    {
+      "id": "ATK064",
+      "source": "CHE",
+      "target": "SGP",
+      "type": "Banking Trojan",
+      "severity": "high",
+      "timestamp": "2024-01-16T23:30:00Z",
+      "duration": 3500,
+      "description": "Banking malware from Switzerland"
+    },
+    {
+      "id": "ATK065",
+      "source": "AUT",
+      "target": "SGP",
+      "type": "Phishing",
+      "severity": "medium",
+      "timestamp": "2024-01-17T00:00:00Z",
+      "duration": 2500,
+      "description": "Phishing from Austria"
+    },
+    {
+      "id": "ATK066",
+      "source": "BEL",
+      "target": "SGP",
+      "type": "Malware",
+      "severity": "medium",
+      "timestamp": "2024-01-17T00:30:00Z",
+      "duration": 2800,
+      "description": "Malware from Belgium"
+    },
+    {
+      "id": "ATK067",
+      "source": "CZE",
+      "target": "SGP",
+      "type": "DDoS",
+      "severity": "medium",
+      "timestamp": "2024-01-17T01:00:00Z",
+      "duration": 2500,
+      "description": "DDoS attack from Czech Republic"
+    },
+    {
+      "id": "ATK068",
+      "source": "HUN",
+      "target": "SGP",
+      "type": "Social Engineering",
+      "severity": "medium",
+      "timestamp": "2024-01-17T01:30:00Z",
+      "duration": 2500,
+      "description": "Social engineering from Hungary"
+    },
+    {
+      "id": "ATK069",
+      "source": "SVK",
+      "target": "SGP",
+      "type": "Data Breach",
+      "severity": "low",
+      "timestamp": "2024-01-17T02:00:00Z",
+      "duration": 2200,
+      "description": "Data breach from Slovakia"
+    },
+    {
+      "id": "ATK070",
+      "source": "SVN",
+      "target": "SGP",
+      "type": "Malware",
+      "severity": "low",
+      "timestamp": "2024-01-17T02:30:00Z",
+      "duration": 2000,
+      "description": "Malware from Slovenia"
+    }
+  ],
+  "threatTypes": {
+    "DDoS": { "color": "#ff4444", "priority": 3 },
+    "Malware": { "color": "#ff8800", "priority": 2 },
+    "Phishing": { "color": "#ffaa00", "priority": 2 },
+    "Cyber Espionage": { "color": "#cc0000", "priority": 4 },
+    "Data Breach": { "color": "#ff6600", "priority": 3 },
+    "Infrastructure Attack": { "color": "#990000", "priority": 5 },
+    "Supply Chain Attack": { "color": "#dd4400", "priority": 3 },
+    "Election Interference": { "color": "#bb2200", "priority": 4 },
+    "Banking Trojan": { "color": "#ff7700", "priority": 2 },
+    "Wiper Attack": { "color": "#880000", "priority": 5 },
+    "IP Theft": { "color": "#ee3300", "priority": 3 },
+    "Social Engineering": { "color": "#ff9900", "priority": 2 }
+  },
+  "severityLevels": {
+    "low": { "color": "#ffdd00", "strokeWidth": 1 },
+    "medium": { "color": "#ff8800", "strokeWidth": 2 },
+    "high": { "color": "#ff4400", "strokeWidth": 3 },
+    "critical": { "color": "#cc0000", "strokeWidth": 4 }
+  }
+}
