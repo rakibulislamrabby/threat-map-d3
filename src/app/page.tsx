@@ -8,14 +8,13 @@ export default function Home() {
       <main className={styles.main}>
         <h1 style={{ 
           textAlign: 'center', 
-          marginBottom: '1rem',
+          marginBottom: '2rem',
           color: '#333',
           fontSize: '2rem',
           fontWeight: 'bold'
         }}>
           Interactive World Map with D3.js
         </h1>
-       
         <WorldMap />
       </main>
     </div>

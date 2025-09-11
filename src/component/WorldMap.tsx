@@ -6,6 +6,18 @@ import * as topojson from 'topojson-client';
 import colorData from '../data/randomcountries.json';
 import worldData from '../data/world.json';
 
+// Type definitions for better type safety
+interface CountryFeature {
+  id: string;
+  properties: {
+    name: string;
+  };
+}
+
+interface CountryColorData {
+  [key: string]: number;
+}
+
 const WorldMap: React.FC = () => {
   const svgRef = useRef<SVGSVGElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -56,7 +68,7 @@ const WorldMap: React.FC = () => {
       });
 
     // Apply zoom to svg
-    svg.call(zoom as any);
+    svg.call(zoom);
 
     // Add overlay rect for zoom/pan
     svg.append("rect")
@@ -69,7 +81,8 @@ const WorldMap: React.FC = () => {
     const path = d3.geoPath().projection(projection);
 
     // Convert topojson to geojson
-    const countries = topojson.feature(worldData as any, worldData.objects.world_subunits);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const countries = topojson.feature(worldData as any, worldData.objects.world_subunits as any);
 
     // Create countries group
     const countriesGroup = svg.append("g")
@@ -77,25 +90,27 @@ const WorldMap: React.FC = () => {
 
     // Add countries
     countriesGroup.selectAll(".subunit")
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .data((countries as any).features)
       .enter()
       .append("path")
-      .attr("class", (d: any) => {
-        const feature = d as any;
-        return `subunit-boundary subunit Group${colorData[feature.id] || 0} ${feature.id}`;
+      .attr("class", (d) => {
+        const feature = d as CountryFeature;
+        return `subunit-boundary subunit Group${(colorData as CountryColorData)[feature.id] || 0} ${feature.id}`;
       })
-      .style("fill", (d: any) => {
-        const feature = d as any;
-        const groupNum = colorData[feature.id] || 0;
+      .style("fill", (d) => {
+        const feature = d as CountryFeature;
+        const groupNum = (colorData as CountryColorData)[feature.id] || 0;
         const colors = ['#000000', '#F5E9CA', '#6DA690', '#BAC366', '#FE4D57', '#1D0463'];
         return colors[groupNum];
       })
       .style("stroke", "#777")
       .style("stroke-width", "1px")
       .style("stroke-linejoin", "round")
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .attr("d", path as any)
-      .on("mouseover", function(event, d: any) {
-        const feature = d as any;
+      .on("mouseover", function(event, d) {
+        const feature = d as CountryFeature;
         
         // Change country color to black on hover
         d3.select(this)
@@ -110,11 +125,11 @@ const WorldMap: React.FC = () => {
           .style("top", `${mouseY - 25}px`)
           .html(`<p>${feature.properties.name}</p>`);
       })
-      .on("mouseout", function(event, d: any) {
-        const feature = d as any;
+      .on("mouseout", function(event, d) {
+        const feature = d as CountryFeature;
         
         // Restore original color
-        const groupNum = colorData[feature.id] || 0;
+        const groupNum = (colorData as CountryColorData)[feature.id] || 0;
         const colors = ['#000000', '#F5E9CA', '#6DA690', '#BAC366', '#FE4D57', '#1D0463'];
         
         d3.select(this)
