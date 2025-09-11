@@ -136,7 +136,7 @@ const WorldMap: React.FC = () => {
       .append("path")
       .attr("class", (d) => {
         const feature = d as CountryFeature;
-        return `subunit-boundary subunit Group${(colorData as CountryColorData)[feature.id] || 0} ${feature.id}`;
+        return `subunit-boundary subunit gray-country ${feature.id}`;
       })
       .style("fill", (d) => {
         const feature = d as CountryFeature;
@@ -257,23 +257,33 @@ const WorldMap: React.FC = () => {
               strokeDashoffset: pathLength + dashLength
             });
             
-            // Create smooth flowing animation
-            gsap.timeline({ delay: index * 0.3 })
+            // Create aggressive attack animation
+            gsap.timeline({ delay: index * 0.2 })
               .to(pathElement, {
                 strokeDashoffset: -pathLength - dashLength,
-                duration: 2.5 + Math.random() * 1, // Vary speed like ReactGlobe
-                ease: "none", // Linear for smooth flow
+                duration: 1.2 + Math.random() * 0.5, // Faster attack speed
+                ease: "power2.in", // Aggressive acceleration
                 repeat: -1
               });
             
-            // Add subtle opacity pulse
+            // Add aggressive pulsing attack effect
             gsap.to(pathElement, {
-              opacity: 0.4,
-              duration: 1.5,
+              opacity: 0.9,
+              duration: 0.8,
+              ease: "power2.out",
+              repeat: -1,
+              yoyo: true,
+              delay: index * 0.1
+            });
+            
+            // Add attack intensity effect
+            gsap.to(pathElement, {
+              strokeWidth: severity.strokeWidth * 1.5,
+              duration: 0.6,
               ease: "power2.inOut",
               repeat: -1,
               yoyo: true,
-              delay: index * 0.2
+              delay: index * 0.15
             });
 
           // Add traveling particle effect along the arc
@@ -373,64 +383,74 @@ const WorldMap: React.FC = () => {
     color: string,
     index: number
   ) => {
-    // Create multiple particles for smoother effect
-    for (let i = 0; i < 3; i++) {
+    // Create aggressive attack particles
+    for (let i = 0; i < 5; i++) {
       const particle = group
         .append("circle")
-        .attr("class", "traveling-particle")
+        .attr("class", "attack-particle")
         .attr("cx", sourcePoint[0])
         .attr("cy", sourcePoint[1])
-        .attr("r", 1.5 + Math.random() * 1)
+        .attr("r", 2 + Math.random() * 2)
         .style("fill", color)
         .style("opacity", 0)
-        .style("filter", `drop-shadow(0 0 6px ${color})`);
+        .style("filter", `drop-shadow(0 0 8px ${color})`);
 
       const particleElement = particle.node();
       if (particleElement) {
-        // Calculate smooth arc path using quadratic curve
+        // Calculate aggressive attack arc path
         const dx = targetPoint[0] - sourcePoint[0];
         const dy = targetPoint[1] - sourcePoint[1];
         const distance = Math.sqrt(dx * dx + dy * dy);
-        const arcHeight = Math.min(distance * 0.3, 150);
+        const arcHeight = Math.min(distance * 0.4, 200); // Higher arc for more dramatic effect
         
         const midX = (sourcePoint[0] + targetPoint[0]) / 2;
         const midY = (sourcePoint[1] + targetPoint[1]) / 2 - arcHeight;
         
-        // Create smooth flowing animation
+        // Create aggressive attack animation
         const tl = gsap.timeline({ 
           repeat: -1, 
-          delay: index * 0.4 + i * 0.2,
-          ease: "none"
+          delay: index * 0.3 + i * 0.1,
+          ease: "power2.in"
         });
         
-        // Animate along the arc path with smooth bezier curve
+        // Fast attack trajectory
         tl.to(particleElement, {
           attr: { cx: midX, cy: midY },
-          duration: 1.25 + Math.random() * 0.5,
+          duration: 0.8 + Math.random() * 0.3,
           ease: "power2.out"
         })
         .to(particleElement, {
           attr: { cx: targetPoint[0], cy: targetPoint[1] },
-          duration: 1.25 + Math.random() * 0.5,
+          duration: 0.8 + Math.random() * 0.3,
           ease: "power2.in"
         })
         .set(particleElement, {
           attr: { cx: sourcePoint[0], cy: sourcePoint[1] }
         });
 
-        // Add smooth opacity animation
+        // Aggressive opacity and size animation
         gsap.to(particleElement, {
-          opacity: 0.8,
-          duration: 0.3,
+          opacity: 1,
+          duration: 0.2,
           ease: "power2.out",
-          delay: index * 0.4 + i * 0.2
+          delay: index * 0.3 + i * 0.1
         });
         
         gsap.to(particleElement, {
-          opacity: 0.2,
-          duration: 0.3,
+          opacity: 0.1,
+          duration: 0.2,
           ease: "power2.in",
-          delay: index * 0.4 + i * 0.2 + 2.2
+          delay: index * 0.3 + i * 0.1 + 1.4
+        });
+        
+        // Add pulsing attack effect
+        gsap.to(particleElement, {
+          attr: { r: 4 + Math.random() * 2 },
+          duration: 0.4,
+          ease: "power2.inOut",
+          repeat: -1,
+          yoyo: true,
+          delay: index * 0.3 + i * 0.1
         });
       }
     }
@@ -665,38 +685,59 @@ const WorldMap: React.FC = () => {
   const startThreatAnimation = (svg: d3.Selection<SVGSVGElement, unknown, null, undefined>) => {
     const threatArcs = svg.selectAll(".threat-arc").nodes();
     
-    // Create smooth flowing animations for each arc
+    // Create aggressive attack animations for each arc
     threatArcs.forEach((arc, index) => {
       if (arc) {
-        // Add subtle breathing effect to each arc
+        // Add aggressive pulsing attack effect
         gsap.to(arc, {
-          opacity: 0.6,
-          duration: 2 + Math.random() * 1,
+          opacity: 0.9,
+          duration: 1 + Math.random() * 0.5,
+          ease: "power2.inOut",
+          repeat: -1,
+          yoyo: true,
+          delay: index * 0.05
+        });
+        
+        // Add aggressive scale pulsing
+        gsap.to(arc, {
+          scale: 1.05,
+          duration: 1.5 + Math.random() * 0.5,
+          ease: "power2.inOut",
+          repeat: -1,
+          yoyo: true,
+          delay: index * 0.08
+        });
+        
+        // Add attack intensity effect
+        gsap.to(arc, {
+          filter: "drop-shadow(0 0 8px rgba(255,0,0,0.8))",
+          duration: 0.8,
           ease: "power2.inOut",
           repeat: -1,
           yoyo: true,
           delay: index * 0.1
         });
-        
-        // Add subtle scale pulsing
-        gsap.to(arc, {
-          scale: 1.02,
-          duration: 3 + Math.random() * 1,
-          ease: "power1.inOut",
-          repeat: -1,
-          yoyo: true,
-          delay: index * 0.15
-        });
       }
     });
 
-    // Add periodic flash effect for high-priority threats
+    // Add aggressive flash effect for high-priority threats
     gsap.to(".threat-critical", {
       opacity: 1,
-      duration: 0.2,
+      scale: 1.1,
+      duration: 0.1,
       ease: "power2.out",
       repeat: -1,
-      repeatDelay: 4 + Math.random() * 2,
+      repeatDelay: 2 + Math.random() * 1,
+      yoyo: true
+    });
+    
+    // Add intense glow effect for critical threats
+    gsap.to(".threat-critical", {
+      filter: "drop-shadow(0 0 15px rgba(255,0,0,1))",
+      duration: 0.3,
+      ease: "power2.inOut",
+      repeat: -1,
+      repeatDelay: 2 + Math.random() * 1,
       yoyo: true
     });
 
