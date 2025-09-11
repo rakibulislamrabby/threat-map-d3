@@ -1,6 +1,27 @@
+'use client';
+
 import React from 'react';
-import WorldMap from '../component/WorldMap';
+import dynamic from 'next/dynamic';
 import styles from './page.module.css';
+
+// Import WorldMap with SSR disabled to prevent hydration errors
+const WorldMap = dynamic(() => import('../component/WorldMap'), {
+  ssr: false,
+  loading: () => (
+    <div style={{
+      width: '100%',
+      height: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: '#ffffff'
+    }}>
+      <div style={{ color: '#333', fontSize: '16px' }}>
+        Loading world map...
+      </div>
+    </div>
+  )
+});
 
 export default function Home() {
   return (

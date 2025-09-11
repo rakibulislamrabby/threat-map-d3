@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 import * as topojson from 'topojson-client';
 import colorData from '../data/randomcountries.json';
@@ -21,17 +21,12 @@ interface CountryColorData {
 const WorldMap: React.FC = () => {
   const svgRef = useRef<SVGSVGElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
-  const [isClient, setIsClient] = useState(false);
 
   const width = 1100;
   const height = 750;
 
   useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isClient || !svgRef.current || !tooltipRef.current) return;
+    if (!svgRef.current || !tooltipRef.current) return;
 
     const svg = d3.select(svgRef.current);
     const tooltip = d3.select(tooltipRef.current);
@@ -138,26 +133,7 @@ const WorldMap: React.FC = () => {
         // Hide tooltip
         tooltip.style("display", "none");
       });
-  }, [isClient]);
-
-  if (!isClient) {
-    return (
-      <div style={{
-        width: '100%',
-        height: '100vh',
-        position: 'relative',
-        overflow: 'hidden',
-        background: '#ffffff',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        <div style={{ color: '#333', fontSize: '16px' }}>
-          Loading world map...
-        </div>
-      </div>
-    );
-  }
+  }, []);
 
   return (
     <div style={{
