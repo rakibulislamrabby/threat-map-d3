@@ -147,16 +147,41 @@ const SimpleWorldMap: React.FC = () => {
 
     // Cleanup function
     return () => {
+      // Clear all particle intervals
+      svg.selectAll('.attack-arcs').each(function() {
+        const intervalId = (this as any).__particleInterval;
+        if (intervalId) {
+          clearInterval(intervalId);
+        }
+      });
+      
       // Clear all animations and particles
       svg.selectAll('.attack-particle').remove();
       svg.selectAll('.attack-arc').remove();
     };
   }, []);
 
-  // Function to create simple straight line from source to target
-  const createSimpleArcPath = (source: [number, number], target: [number, number]) => {
-    // Simple straight line from source to target
-    return `M${source[0]},${source[1]}L${target[0]},${target[1]}`;
+  // Function to create dramatic globe-style arc (like the images)
+  const createDramaticGlobeArc = (source: [number, number], target: [number, number]) => {
+    const dx = target[0] - source[0];
+    const dy = target[1] - source[1];
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    // Calculate dramatic arc height based on distance
+    const arcHeight = Math.min(distance * 0.6, 300); // More dramatic curve
+    
+    // Calculate multiple control points for smoother curve
+    const midX = (source[0] + target[0]) / 2;
+    const midY = (source[1] + target[1]) / 2 - arcHeight;
+    
+    // Create cubic bezier curve for smoother, more dramatic arc
+    const cp1X = source[0] + (midX - source[0]) * 0.5;
+    const cp1Y = source[1] - arcHeight * 0.3;
+    const cp2X = target[0] - (target[0] - midX) * 0.5;
+    const cp2Y = target[1] - arcHeight * 0.3;
+    
+    // Create dramatic curved arc
+    return `M${source[0]},${source[1]}C${cp1X},${cp1Y} ${cp2X},${cp2Y} ${target[0]},${target[1]}`;
   };
 
   // Function to update arc path on projection change
@@ -170,7 +195,7 @@ const SimpleWorldMap: React.FC = () => {
       const targetPoint = projection([targetCoord.lng, targetCoord.lat]);
 
       if (sourcePoint && targetPoint) {
-        const newPath = createSimpleArcPath(sourcePoint, targetPoint);
+        const newPath = createDramaticGlobeArc(sourcePoint, targetPoint);
         arc.attr("d", newPath);
       }
     }
@@ -197,89 +222,139 @@ const SimpleWorldMap: React.FC = () => {
         if (sourcePoint && targetPoint) {
           const severity = threats.severityLevels[attack.severity];
 
-          // Create animated straight line arc
+          // Create animated dramatic globe-style arc
           const arcPath = arcsGroup
             .append("path")
             .attr("class", `attack-arc attack-${attack.severity}`)
-            .attr("d", createSimpleArcPath(sourcePoint, targetPoint))
+            .attr("d", createDramaticGlobeArc(sourcePoint, targetPoint))
             .style("fill", "none")
             .style("stroke", severity.color)
             .style("stroke-width", severity.strokeWidth)
-            .style("opacity", 0.8)
+            .style("opacity", 0.9)
+            .style("filter", `drop-shadow(0 0 6px ${severity.color})`)
+            .style("stroke-linecap", "round")
             .attr("data-attack-id", attack.id)
             .attr("data-source", attack.source)
             .attr("data-target", attack.target)
             .attr("data-type", attack.type)
             .attr("data-description", attack.description);
 
-          // Add flowing particle animation like globe apps
+          // Add flowing arc animation (stroke-dasharray effect)
           const pathElement = arcPath.node() as SVGPathElement;
           if (pathElement) {
             const pathLength = pathElement.getTotalLength();
             
-            // Create multiple particles for flowing effect
-            const particleCount = 3;
-            for (let i = 0; i < particleCount; i++) {
-              const particle = arcsGroup
-                .append("circle")
-                .attr("class", `attack-particle ${attack.id}`)
-                .attr("cx", sourcePoint[0])
-                .attr("cy", sourcePoint[1])
-                .attr("r", 2)
-                .style("fill", severity.color)
-                .style("opacity", 0.8)
-                .style("filter", `drop-shadow(0 0 4px ${severity.color})`)
-                .style("pointer-events", "none");
+            // Set up flowing arc animation
+            const dashLength = 15;
+            const gapLength = 8;
+            
+            // Set initial dash pattern
+            pathElement.style.strokeDasharray = `${dashLength},${gapLength}`;
+            pathElement.style.strokeDashoffset = `${pathLength + dashLength}`;
+            
+            // Animate the arc flow
+            const animateArc = () => {
+              pathElement.style.transition = `stroke-dashoffset 3000ms linear`;
+              pathElement.style.strokeDashoffset = `${-pathLength - dashLength}`;
+              
+              // Restart animation after completion
+              setTimeout(() => {
+                pathElement.style.strokeDashoffset = `${pathLength + dashLength}`;
+                setTimeout(animateArc, 500);
+              }, 3000);
+            };
+            
+            // Start arc animation with delay
+            setTimeout(animateArc, index * 400);
+            
+            // Create subtle particle stream (arc is main animation)
+            const createParticleStream = () => {
+              let particleId = 0;
+              const streamInterval = 1500; // Slower particle stream since arc is animated
+              
+              const spawnParticle = () => {
+                const particle = arcsGroup
+                  .append("circle")
+                  .attr("class", `attack-particle ${attack.id}-${particleId}`)
+                  .attr("cx", sourcePoint[0])
+                  .attr("cy", sourcePoint[1])
+                  .attr("r", 2)
+                  .style("fill", severity.color)
+                  .style("opacity", 0.7)
+                  .style("filter", `drop-shadow(0 0 4px ${severity.color})`)
+                  .style("pointer-events", "none");
 
-              // Animate particle along the path (globe-style)
-              const animateParticle = () => {
-                const startTime = Date.now();
-                const duration = 2000 + Math.random() * 1000; // 2-3 seconds
-                const delay = i * 800; // Stagger particles
-                
-                const animate = () => {
-                  const elapsed = Date.now() - startTime;
-                  const progress = Math.min(elapsed / duration, 1);
+                // Animate this particle along the arc
+                const animateParticle = () => {
+                  const startTime = Date.now();
+                  const duration = 2500; // Fixed duration for consistent flow
                   
-                  if (progress < 1) {
-                    // Easing function for smooth movement
-                    const easeProgress = 1 - Math.pow(1 - progress, 3); // Ease out cubic
+                  const animate = () => {
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
                     
-                    // Calculate position along the line
-                    const x = sourcePoint[0] + (targetPoint[0] - sourcePoint[0]) * easeProgress;
-                    const y = sourcePoint[1] + (targetPoint[1] - sourcePoint[1]) * easeProgress;
-                    
-                    // Update particle position with glow effect
-                    particle
-                      .attr("cx", x)
-                      .attr("cy", y)
-                      .style("opacity", 0.9 - progress * 0.4) // Fade out as it travels
-                      .style("r", 2 + Math.sin(progress * Math.PI) * 1); // Pulse size
-                    
-                    requestAnimationFrame(animate);
-                  } else {
-                    // Reset particle to start
-                    particle
-                      .attr("cx", sourcePoint[0])
-                      .attr("cy", sourcePoint[1])
-                      .style("opacity", 0)
-                      .style("r", 2);
-                    
-                    // Restart animation after delay
-                    setTimeout(() => {
-                      particle.style("opacity", 0.9);
-                      animateParticle();
-                    }, delay);
-                  }
+                    if (progress < 1) {
+                      // Easing function for smooth movement
+                      const easeProgress = 1 - Math.pow(1 - progress, 3); // Ease out cubic
+                      
+                      // Calculate position along the dramatic cubic bezier curve
+                      const dx = targetPoint[0] - sourcePoint[0];
+                      const dy = targetPoint[1] - sourcePoint[1];
+                      const distance = Math.sqrt(dx * dx + dy * dy);
+                      const arcHeight = Math.min(distance * 0.6, 300);
+                      
+                      // Calculate control points for cubic bezier
+                      const midX = (sourcePoint[0] + targetPoint[0]) / 2;
+                      const cp1X = sourcePoint[0] + (midX - sourcePoint[0]) * 0.5;
+                      const cp1Y = sourcePoint[1] - arcHeight * 0.3;
+                      const cp2X = targetPoint[0] - (targetPoint[0] - midX) * 0.5;
+                      const cp2Y = targetPoint[1] - arcHeight * 0.3;
+                      
+                      // Cubic bezier interpolation
+                      const t = easeProgress;
+                      const x = Math.pow(1 - t, 3) * sourcePoint[0] + 
+                               3 * Math.pow(1 - t, 2) * t * cp1X + 
+                               3 * (1 - t) * Math.pow(t, 2) * cp2X + 
+                               Math.pow(t, 3) * targetPoint[0];
+                      const y = Math.pow(1 - t, 3) * sourcePoint[1] + 
+                               3 * Math.pow(1 - t, 2) * t * cp1Y + 
+                               3 * (1 - t) * Math.pow(t, 2) * cp2Y + 
+                               Math.pow(t, 3) * targetPoint[1];
+                      
+                      // Update particle position (subtle since arc is main animation)
+                      particle
+                        .attr("cx", x)
+                        .attr("cy", y)
+                        .style("opacity", 0.7 - progress * 0.3) // Fade out as it travels
+                        .style("r", 2 + Math.sin(progress * Math.PI) * 0.5); // Subtle pulse
+                      
+                      requestAnimationFrame(animate);
+                    } else {
+                      // Particle reached target - remove it
+                      particle.remove();
+                    }
+                  };
+                  
+                  animate();
                 };
                 
-                // Start animation with delay
-                setTimeout(animate, delay);
+                // Start this particle's animation
+                animateParticle();
+                particleId++;
               };
               
-              // Start particle animation
-              setTimeout(animateParticle, index * 200 + i * 500);
-            }
+              // Start spawning particles
+              spawnParticle(); // First particle
+              
+              // Continue spawning particles at intervals
+              const intervalId = setInterval(spawnParticle, streamInterval);
+              
+              // Store interval ID for cleanup
+              (arcsGroup.node() as any).__particleInterval = intervalId;
+            };
+            
+            // Start the particle stream with delay
+            setTimeout(createParticleStream, index * 300);
           }
 
           // Hover effects
