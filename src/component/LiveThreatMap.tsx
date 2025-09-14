@@ -186,15 +186,15 @@ const LiveThreatMap: React.FC = () => {
   const createTestArc = () => {
     // Create a simple test arc to verify Three.js is working
     const points = [
-      new THREE.Vector3(-1, 0, 0),
-      new THREE.Vector3(0, 1, 0),
-      new THREE.Vector3(1, 0, 0)
+      new THREE.Vector3(-2, 0, 0),
+      new THREE.Vector3(0, 2, 0),
+      new THREE.Vector3(2, 0, 0)
     ];
     
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
     const material = new THREE.LineBasicMaterial({
       color: 0xff0000,
-      linewidth: 10
+      linewidth: 15
     });
     
     return new THREE.Line(geometry, material);
@@ -217,8 +217,8 @@ const LiveThreatMap: React.FC = () => {
     scene.add(directionalLight);
 
     // Create camera
-    const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-    camera.position.set(0, 0, 4); // Move camera back to see arcs better
+    const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
+    camera.position.set(0, 0, 6); // Move camera further back
     camera.lookAt(0, 0, 0);
     cameraRef.current = camera;
 
@@ -238,11 +238,16 @@ const LiveThreatMap: React.FC = () => {
     const testArc = createTestArc();
     if (testArc && sceneRef.current) {
       sceneRef.current.add(testArc);
+      console.log('Added test arc to scene. Scene children:', sceneRef.current.children.length);
+    } else {
+      console.log('Failed to add test arc. Scene:', sceneRef.current, 'TestArc:', testArc);
     }
 
     // Animation loop
+    let frameCount = 0;
     const animate = () => {
       animationIdRef.current = requestAnimationFrame(animate);
+      frameCount++;
       
       // Rotate the scene slightly for dynamic effect
       if (sceneRef.current) {
@@ -251,6 +256,11 @@ const LiveThreatMap: React.FC = () => {
       
       if (rendererRef.current && cameraRef.current && sceneRef.current) {
         rendererRef.current.render(sceneRef.current, cameraRef.current);
+        
+        // Log every 60 frames (about once per second)
+        if (frameCount % 60 === 0) {
+          console.log('Rendering frame', frameCount, 'Scene children:', sceneRef.current.children.length);
+        }
       }
     };
     animate();
@@ -311,12 +321,12 @@ const LiveThreatMap: React.FC = () => {
 
     console.log('Creating 3D arc from', sourceCoord.name, 'to', targetCoord.name);
 
-    // Create 3D curved arc
-    const curve = new THREE.QuadraticBezierCurve3(
-      sourcePos,
-      new THREE.Vector3().addVectors(sourcePos, targetPos).multiplyScalar(0.5).add(new THREE.Vector3(0, 1, 0)),
-      targetPos
-    );
+    // Create 3D curved arc with higher curve
+    const midPoint = new THREE.Vector3().addVectors(sourcePos, targetPos).multiplyScalar(0.5);
+    const curveHeight = 3; // Much higher curve
+    const controlPoint = midPoint.clone().add(new THREE.Vector3(0, curveHeight, 0));
+    
+    const curve = new THREE.QuadraticBezierCurve3(sourcePos, controlPoint, targetPos);
 
     const points = curve.getPoints(50);
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
@@ -325,7 +335,7 @@ const LiveThreatMap: React.FC = () => {
       color: new THREE.Color(severity.color),
       transparent: true,
       opacity: 1.0,
-      linewidth: 8 // Much thicker for visibility
+      linewidth: 20 // Very thick for maximum visibility
     });
 
     const line = new THREE.Line(geometry, material);
@@ -387,7 +397,7 @@ const LiveThreatMap: React.FC = () => {
     const particles: THREE.Mesh[] = [];
 
     for (let i = 0; i < particleCount; i++) {
-      const geometry = new THREE.SphereGeometry(0.05, 8, 8); // Larger particles
+      const geometry = new THREE.SphereGeometry(0.1, 8, 8); // Much larger particles
       const material = new THREE.MeshBasicMaterial({
         color: new THREE.Color(color)
       });
