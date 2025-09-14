@@ -175,27 +175,87 @@ const SimpleWorldMap: React.FC = () => {
     };
   }, []);
 
-  // Function to create dramatic globe-style arc (like the images)
-  const createDramaticGlobeArc = (source: [number, number], target: [number, number]) => {
+  // Enhanced function to create dramatic globe-style arc with multiple curve options
+  const createDramaticGlobeArc = (source: [number, number], target: [number, number], curveType: 'globe' | 'great-circle' | 'parabolic' = 'globe') => {
+    const dx = target[0] - source[0];
+    const dy = target[1] - source[1];
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    // Calculate arc height based on distance and curve type
+    let arcHeight: number;
+    switch (curveType) {
+      case 'great-circle':
+        arcHeight = Math.min(distance * 0.3, 150); // Subtle curve
+        break;
+      case 'parabolic':
+        arcHeight = Math.min(distance * 0.8, 400); // Very dramatic curve
+        break;
+      default: // 'globe'
+        arcHeight = Math.min(distance * 0.6, 300); // Moderate dramatic curve
+    }
+
+    const midX = (source[0] + target[0]) / 2;
+    const midY = (source[1] + target[1]) / 2 - arcHeight;
+
+    if (curveType === 'great-circle') {
+      // Simple quadratic curve for great circle style
+      return `M${source[0]},${source[1]}Q${midX},${midY} ${target[0]},${target[1]}`;
+    } else {
+      // Cubic bezier curve for dramatic arcs
+      const cp1X = source[0] + (midX - source[0]) * 0.5;
+      const cp1Y = source[1] - arcHeight * 0.3;
+      const cp2X = target[0] - (target[0] - midX) * 0.5;
+      const cp2Y = target[1] - arcHeight * 0.3;
+
+      return `M${source[0]},${source[1]}C${cp1X},${cp1Y} ${cp2X},${cp2Y} ${target[0]},${target[1]}`;
+    }
+  };
+
+  // Function to get point along arc path at given progress (0-1)
+  const getPointAlongArc = (source: [number, number], target: [number, number], progress: number, curveType: 'globe' | 'great-circle' | 'parabolic' = 'globe') => {
     const dx = target[0] - source[0];
     const dy = target[1] - source[1];
     const distance = Math.sqrt(dx * dx + dy * dy);
     
-    // Calculate dramatic arc height based on distance
-    const arcHeight = Math.min(distance * 0.6, 300); // More dramatic curve
-    
-    // Calculate multiple control points for smoother curve
+    let arcHeight: number;
+    switch (curveType) {
+      case 'great-circle':
+        arcHeight = Math.min(distance * 0.3, 150);
+        break;
+      case 'parabolic':
+        arcHeight = Math.min(distance * 0.8, 400);
+        break;
+      default:
+        arcHeight = Math.min(distance * 0.6, 300);
+    }
+
     const midX = (source[0] + target[0]) / 2;
     const midY = (source[1] + target[1]) / 2 - arcHeight;
-    
-    // Create cubic bezier curve for smoother, more dramatic arc
-    const cp1X = source[0] + (midX - source[0]) * 0.5;
-    const cp1Y = source[1] - arcHeight * 0.3;
-    const cp2X = target[0] - (target[0] - midX) * 0.5;
-    const cp2Y = target[1] - arcHeight * 0.3;
-    
-    // Create dramatic curved arc
-    return `M${source[0]},${source[1]}C${cp1X},${cp1Y} ${cp2X},${cp2Y} ${target[0]},${target[1]}`;
+
+    if (curveType === 'great-circle') {
+      // Quadratic bezier interpolation
+      const t = progress;
+      const x = Math.pow(1 - t, 2) * source[0] + 2 * (1 - t) * t * midX + Math.pow(t, 2) * target[0];
+      const y = Math.pow(1 - t, 2) * source[1] + 2 * (1 - t) * t * midY + Math.pow(t, 2) * target[1];
+      return [x, y] as [number, number];
+    } else {
+      // Cubic bezier interpolation
+      const cp1X = source[0] + (midX - source[0]) * 0.5;
+      const cp1Y = source[1] - arcHeight * 0.3;
+      const cp2X = target[0] - (target[0] - midX) * 0.5;
+      const cp2Y = target[1] - arcHeight * 0.3;
+
+      const t = progress;
+      const x = Math.pow(1 - t, 3) * source[0] +
+                3 * Math.pow(1 - t, 2) * t * cp1X +
+                3 * (1 - t) * Math.pow(t, 2) * cp2X +
+                Math.pow(t, 3) * target[0];
+      const y = Math.pow(1 - t, 3) * source[1] +
+                3 * Math.pow(1 - t, 2) * t * cp1Y +
+                3 * (1 - t) * Math.pow(t, 2) * cp2Y +
+                Math.pow(t, 3) * target[1];
+      return [x, y] as [number, number];
+    }
   };
 
   // Function to update arc path on projection change
@@ -213,6 +273,134 @@ const SimpleWorldMap: React.FC = () => {
         arc.attr("d", newPath);
       }
     }
+  };
+
+  // Utility function to create a single animated attack arc
+  const createAnimatedAttackArc = (
+    svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
+    source: [number, number], // [longitude, latitude]
+    target: [number, number], // [longitude, latitude]
+    options: {
+      id?: string;
+      color?: string;
+      strokeWidth?: number;
+      curveType?: 'globe' | 'great-circle' | 'parabolic';
+      animationDuration?: number;
+      particleCount?: number;
+      particleInterval?: number;
+    } = {}
+  ) => {
+    const {
+      id = `arc-${Date.now()}`,
+      color = '#ff0000',
+      strokeWidth = 3,
+      curveType = 'globe',
+      animationDuration = 2000,
+      particleCount = 1,
+      particleInterval = 1200
+    } = options;
+
+    const projection = d3.geoMercator()
+      .translate([width / 2, height / 2])
+      .scale((width - 1) / 2 / Math.PI);
+
+    const sourcePoint = projection(source);
+    const targetPoint = projection(target);
+
+    if (!sourcePoint || !targetPoint) return null;
+
+    // Create arc group
+    const arcGroup = svg.select('.main-group').select('.attack-arcs');
+    
+    // Create the arc path
+    const arcPath = arcGroup
+      .append("path")
+      .attr("class", `attack-arc ${id}`)
+      .attr("d", createDramaticGlobeArc(sourcePoint, targetPoint, curveType))
+      .style("fill", "none")
+      .style("stroke", color)
+      .style("stroke-width", strokeWidth)
+      .style("opacity", 0.85)
+      .style("filter", `drop-shadow(0 0 8px ${color}) blur(0.5px)`)
+      .style("stroke-linecap", "round")
+      .style("stroke-linejoin", "round")
+      .attr("data-arc-id", id);
+
+    // Add flowing animation
+    const pathElement = arcPath.node() as SVGPathElement;
+    if (pathElement) {
+      const pathLength = pathElement.getTotalLength();
+      const dashLength = 15;
+      const gapLength = 8;
+
+      pathElement.style.strokeDasharray = `${dashLength},${gapLength}`;
+      pathElement.style.strokeDashoffset = `${pathLength + dashLength}`;
+
+      const animateArc = () => {
+        pathElement.style.transition = `stroke-dashoffset ${animationDuration}ms cubic-bezier(0.4, 0, 0.2, 1)`;
+        pathElement.style.strokeDashoffset = `${-pathLength - dashLength}`;
+
+        setTimeout(() => {
+          pathElement.style.strokeDashoffset = `${pathLength + dashLength}`;
+          setTimeout(animateArc, 300);
+        }, animationDuration);
+      };
+
+      animateArc();
+    }
+
+    // Add particle animation
+    let particleId = 0;
+    const spawnParticle = () => {
+      const particle = arcGroup
+        .append("circle")
+        .attr("class", `attack-particle ${id}-${particleId}`)
+        .attr("cx", sourcePoint[0])
+        .attr("cy", sourcePoint[1])
+        .attr("r", 1.5)
+        .style("fill", color)
+        .style("opacity", 0.8)
+        .style("filter", `drop-shadow(0 0 3px ${color}) blur(0.3px)`)
+        .style("pointer-events", "none");
+
+      // Animate particle along arc
+      const startTime = Date.now();
+      const duration = 2500;
+
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        if (progress < 1) {
+          const easeProgress = 1 - Math.pow(1 - progress, 3);
+          const position = getPointAlongArc(sourcePoint, targetPoint, easeProgress, curveType);
+          
+          particle
+            .attr("cx", position[0])
+            .attr("cy", position[1])
+            .style("opacity", 0.8 - progress * 0.3)
+            .style("r", 1.5 + Math.sin(progress * Math.PI) * 0.5);
+
+          requestAnimationFrame(animate);
+        } else {
+          particle.remove();
+        }
+      };
+
+      animate();
+      particleId++;
+    };
+
+    // Start particle stream
+    spawnParticle();
+    const intervalId = setInterval(spawnParticle, particleInterval);
+
+    // Return cleanup function
+    return () => {
+      clearInterval(intervalId);
+      arcPath.remove();
+      arcGroup.selectAll(`.attack-particle.${id}`).remove();
+    };
   };
 
   // Function to add attack pointers (red glowing circles)
@@ -237,31 +425,31 @@ const SimpleWorldMap: React.FC = () => {
       if (coord) {
         const point = projection([coord.lng, coord.lat]);
         if (point) {
-          // Create small outlined red circle
+          // Create enhanced outlined red circle
           const pointer = pointersGroup
             .append("circle")
             .attr("class", `attack-pointer ${countryId}`)
             .attr("cx", point[0])
             .attr("cy", point[1])
-            .attr("r", 4)
-            .style("fill", "none")
+            .attr("r", 6) // Increased size
+            .style("fill", "rgba(255, 0, 0, 0.2)") // Added subtle fill
             .style("stroke", "#ff0000")
-            .style("stroke-width", "2px")
-            .style("opacity", 0.9)
-            .style("filter", "drop-shadow(0 0 4px #ff0000)")
+            .style("stroke-width", "3px") // Increased stroke width
+            .style("opacity", 1) // Full opacity
+            .style("filter", "drop-shadow(0 0 8px #ff0000)") // Enhanced glow
             .style("pointer-events", "none");
 
-          // Add subtle pulsing animation
+          // Add more dramatic pulsing animation
           const animatePulse = () => {
             pointer
               .transition()
-              .duration(2000)
-              .attr("r", 6)
-              .style("opacity", 0.6)
+              .duration(1500) // Faster animation
+              .attr("r", 10) // Larger pulse
+              .style("opacity", 0.4)
               .transition()
-              .duration(2000)
-              .attr("r", 4)
-              .style("opacity", 0.9)
+              .duration(1500)
+              .attr("r", 6)
+              .style("opacity", 1)
               .on("end", animatePulse);
           };
 
@@ -280,6 +468,39 @@ const SimpleWorldMap: React.FC = () => {
     const arcsGroup = mainGroup.append("g")
       .attr("class", "attack-arcs");
 
+    // Create gradient definitions for professional arc styling
+    const defs = svgElement.querySelector('defs') || svgElement.insertBefore(document.createElementNS('http://www.w3.org/2000/svg', 'defs'), svgElement.firstChild);
+    
+    // Create gradients for different severity levels
+    const createGradient = (id: string, color1: string, color2: string) => {
+      const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+      gradient.setAttribute('id', id);
+      gradient.setAttribute('x1', '0%');
+      gradient.setAttribute('y1', '0%');
+      gradient.setAttribute('x2', '100%');
+      gradient.setAttribute('y2', '0%');
+      
+      const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+      stop1.setAttribute('offset', '0%');
+      stop1.setAttribute('stop-color', color1);
+      stop1.setAttribute('stop-opacity', '0.8');
+      
+      const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+      stop2.setAttribute('offset', '100%');
+      stop2.setAttribute('stop-color', color2);
+      stop2.setAttribute('stop-opacity', '0.4');
+      
+      gradient.appendChild(stop1);
+      gradient.appendChild(stop2);
+      defs.appendChild(gradient);
+    };
+
+    // Create professional gradients for each severity
+    createGradient('critical-gradient', '#ff0000', '#ff6666');
+    createGradient('high-gradient', '#ff6600', '#ff9933');
+    createGradient('medium-gradient', '#ffaa00', '#ffcc66');
+    createGradient('low-gradient', '#00aa00', '#66cc66');
+
     // Add animated arcs for each attack
     threats.attacks.forEach((attack, index) => {
       const sourceCoord = coordinates[attack.source];
@@ -292,67 +513,76 @@ const SimpleWorldMap: React.FC = () => {
         if (sourcePoint && targetPoint) {
           const severity = threats.severityLevels[attack.severity];
 
-          // Create animated dramatic globe-style arc
-          const arcPath = arcsGroup
-            .append("path")
-            .attr("class", `attack-arc attack-${attack.severity}`)
-            .attr("d", createDramaticGlobeArc(sourcePoint, targetPoint))
-            .style("fill", "none")
-            .style("stroke", severity.color)
-            .style("stroke-width", severity.strokeWidth)
-            .style("opacity", 0.9)
-            .style("filter", `drop-shadow(0 0 6px ${severity.color})`)
-            .style("stroke-linecap", "round")
-            .attr("data-attack-id", attack.id)
-            .attr("data-source", attack.source)
-            .attr("data-target", attack.target)
-            .attr("data-type", attack.type)
-            .attr("data-description", attack.description);
+                 // Create professional animated arc with gradient and enhanced styling
+                 const arcPath = arcsGroup
+                   .append("path")
+                   .attr("class", `attack-arc attack-${attack.severity}`)
+                   .attr("d", createDramaticGlobeArc(sourcePoint, targetPoint, 'parabolic')) // Use parabolic for more dramatic curves
+                   .style("fill", "none")
+                   .style("stroke", `url(#${attack.severity}-gradient)`)
+                   .style("stroke-width", Math.max(severity.strokeWidth, 4)) // Increased minimum width
+                   .style("opacity", 0.9) // Increased opacity
+                   .style("filter", `drop-shadow(0 0 12px ${severity.color}) blur(0.8px)`) // Enhanced glow
+                   .style("stroke-linecap", "round")
+                   .style("stroke-linejoin", "round")
+                   .attr("data-attack-id", attack.id)
+                   .attr("data-source", attack.source)
+                   .attr("data-target", attack.target)
+                   .attr("data-type", attack.type)
+                   .attr("data-description", attack.description);
 
-          // Add flowing arc animation (stroke-dasharray effect)
-          const pathElement = arcPath.node() as SVGPathElement;
-          if (pathElement) {
-            const pathLength = pathElement.getTotalLength();
+                 // Add professional flowing arc animation
+                 const pathElement = arcPath.node() as SVGPathElement;
+                 if (pathElement) {
+                   const pathLength = pathElement.getTotalLength();
+
+                   // Professional dash pattern based on severity
+                   const dashConfig = {
+                     critical: { dash: 20, gap: 6 },
+                     high: { dash: 16, gap: 8 },
+                     medium: { dash: 12, gap: 10 },
+                     low: { dash: 8, gap: 12 }
+                   };
+                   
+                   const config = dashConfig[attack.severity as keyof typeof dashConfig] || dashConfig.medium;
+                   const dashLength = config.dash;
+                   const gapLength = config.gap;
+
+                   // Set initial dash pattern
+                   pathElement.style.strokeDasharray = `${dashLength},${gapLength}`;
+                   pathElement.style.strokeDashoffset = `${pathLength + dashLength}`;
+
+                   // Professional arc animation with easing
+                   const animateArc = () => {
+                     pathElement.style.transition = `stroke-dashoffset ${2000 + index * 100}ms cubic-bezier(0.4, 0, 0.2, 1)`;
+                     pathElement.style.strokeDashoffset = `${-pathLength - dashLength}`;
+
+                     // Restart animation with slight delay
+                     setTimeout(() => {
+                       pathElement.style.strokeDashoffset = `${pathLength + dashLength}`;
+                       setTimeout(animateArc, 300 + index * 50);
+                     }, 2000 + index * 100);
+                   };
+
+                   // Start arc animation with staggered delay
+                   setTimeout(animateArc, index * 200);
             
-            // Set up flowing arc animation
-            const dashLength = 15;
-            const gapLength = 8;
-            
-            // Set initial dash pattern
-            pathElement.style.strokeDasharray = `${dashLength},${gapLength}`;
-            pathElement.style.strokeDashoffset = `${pathLength + dashLength}`;
-            
-            // Animate the arc flow
-            const animateArc = () => {
-              pathElement.style.transition = `stroke-dashoffset 3000ms linear`;
-              pathElement.style.strokeDashoffset = `${-pathLength - dashLength}`;
-              
-              // Restart animation after completion
-              setTimeout(() => {
-                pathElement.style.strokeDashoffset = `${pathLength + dashLength}`;
-                setTimeout(animateArc, 500);
-              }, 3000);
-            };
-            
-            // Start arc animation with delay
-            setTimeout(animateArc, index * 400);
-            
-            // Create subtle particle stream (arc is main animation)
-            const createParticleStream = () => {
-              let particleId = 0;
-              const streamInterval = 1500; // Slower particle stream since arc is animated
-              
-              const spawnParticle = () => {
-                const particle = arcsGroup
-                  .append("circle")
-                  .attr("class", `attack-particle ${attack.id}-${particleId}`)
-                  .attr("cx", sourcePoint[0])
-                  .attr("cy", sourcePoint[1])
-                  .attr("r", 2)
-                  .style("fill", severity.color)
-                  .style("opacity", 0.7)
-                  .style("filter", `drop-shadow(0 0 4px ${severity.color})`)
-                  .style("pointer-events", "none");
+                   // Create professional particle stream
+                   const createParticleStream = () => {
+                     let particleId = 0;
+                     const streamInterval = 1200; // Optimized timing
+
+                     const spawnParticle = () => {
+                       const particle = arcsGroup
+                         .append("circle")
+                         .attr("class", `attack-particle ${attack.id}-${particleId}`)
+                         .attr("cx", sourcePoint[0])
+                         .attr("cy", sourcePoint[1])
+                         .attr("r", 3) // Increased particle size
+                         .style("fill", severity.color)
+                         .style("opacity", 1) // Increased opacity
+                         .style("filter", `drop-shadow(0 0 6px ${severity.color}) blur(0.5px)`) // Enhanced glow
+                         .style("pointer-events", "none");
 
                 // Animate this particle along the arc
                 const animateParticle = () => {
@@ -363,40 +593,19 @@ const SimpleWorldMap: React.FC = () => {
                     const elapsed = Date.now() - startTime;
                     const progress = Math.min(elapsed / duration, 1);
                     
-                    if (progress < 1) {
-                      // Easing function for smooth movement
-                      const easeProgress = 1 - Math.pow(1 - progress, 3); // Ease out cubic
-                      
-                      // Calculate position along the dramatic cubic bezier curve
-                      const dx = targetPoint[0] - sourcePoint[0];
-                      const dy = targetPoint[1] - sourcePoint[1];
-                      const distance = Math.sqrt(dx * dx + dy * dy);
-                      const arcHeight = Math.min(distance * 0.6, 300);
-                      
-                      // Calculate control points for cubic bezier
-                      const midX = (sourcePoint[0] + targetPoint[0]) / 2;
-                      const cp1X = sourcePoint[0] + (midX - sourcePoint[0]) * 0.5;
-                      const cp1Y = sourcePoint[1] - arcHeight * 0.3;
-                      const cp2X = targetPoint[0] - (targetPoint[0] - midX) * 0.5;
-                      const cp2Y = targetPoint[1] - arcHeight * 0.3;
-                      
-                      // Cubic bezier interpolation
-                      const t = easeProgress;
-                      const x = Math.pow(1 - t, 3) * sourcePoint[0] + 
-                               3 * Math.pow(1 - t, 2) * t * cp1X + 
-                               3 * (1 - t) * Math.pow(t, 2) * cp2X + 
-                               Math.pow(t, 3) * targetPoint[0];
-                      const y = Math.pow(1 - t, 3) * sourcePoint[1] + 
-                               3 * Math.pow(1 - t, 2) * t * cp1Y + 
-                               3 * (1 - t) * Math.pow(t, 2) * cp2Y + 
-                               Math.pow(t, 3) * targetPoint[1];
-                      
-                      // Update particle position (subtle since arc is main animation)
-                      particle
-                        .attr("cx", x)
-                        .attr("cy", y)
-                        .style("opacity", 0.7 - progress * 0.3) // Fade out as it travels
-                        .style("r", 2 + Math.sin(progress * Math.PI) * 0.5); // Subtle pulse
+                           if (progress < 1) {
+                             // Easing function for smooth movement
+                             const easeProgress = 1 - Math.pow(1 - progress, 3); // Ease out cubic
+
+                             // Use the new getPointAlongArc function for parabolic curves
+                             const position = getPointAlongArc(sourcePoint, targetPoint, easeProgress, 'parabolic');
+
+                             // Update particle position with enhanced effects
+                             particle
+                               .attr("cx", position[0])
+                               .attr("cy", position[1])
+                               .style("opacity", 1 - progress * 0.4) // Enhanced fade
+                               .style("r", 3 + Math.sin(progress * Math.PI) * 1.5); // More dramatic pulse
                       
                       requestAnimationFrame(animate);
                     } else {
@@ -427,34 +636,43 @@ const SimpleWorldMap: React.FC = () => {
             setTimeout(createParticleStream, index * 300);
           }
 
-                 // Hover effects
+                 // Professional hover effects
                  arcPath
                    .on("mouseover", function(event) {
                      d3.select(this)
                        .style("opacity", 1)
-                       .style("stroke-width", severity.strokeWidth * 1.5);
+                       .style("stroke-width", Math.max(severity.strokeWidth, 3) * 1.8)
+                       .style("filter", `drop-shadow(0 0 12px ${severity.color}) blur(0.8px)`);
 
                      const [mouseX, mouseY] = d3.pointer(event, svgElement);
 
-              tooltip
-                .style("display", "block")
-                .style("left", `${mouseX + 10}px`)
-                .style("top", `${mouseY - 40}px`)
-                .html(`
-                  <div style="font-weight: bold; color: ${severity.color};">${attack.type}</div>
-                  <div style="margin: 3px 0;">From: <strong>${sourceCoord.name}</strong></div>
-                  <div style="margin: 3px 0;">To: <strong>${targetCoord.name}</strong></div>
-                  <div style="margin: 3px 0;">Severity: <span style="color: ${severity.color};">${attack.severity.toUpperCase()}</span></div>
-                  <div style="margin-top: 8px; font-size: 11px; line-height: 1.3;">${attack.description}</div>
-                `);
-            })
-            .on("mouseout", function() {
-              d3.select(this)
-                .style("opacity", 0.8)
-                .style("stroke-width", severity.strokeWidth);
+                     tooltip
+                       .style("display", "block")
+                       .style("left", `${mouseX + 15}px`)
+                       .style("top", `${mouseY - 50}px`)
+                       .style("background", "rgba(0, 0, 0, 0.9)")
+                       .style("color", "#ffffff")
+                       .style("border", `2px solid ${severity.color}`)
+                       .style("border-radius", "8px")
+                       .style("padding", "12px")
+                       .style("font-size", "13px")
+                       .style("box-shadow", `0 4px 20px rgba(0, 0, 0, 0.3), 0 0 20px ${severity.color}40`)
+                       .html(`
+                         <div style="font-weight: bold; color: ${severity.color}; font-size: 14px; margin-bottom: 8px;">${attack.type}</div>
+                         <div style="margin: 4px 0; color: #e0e0e0;">From: <strong style="color: #ffffff;">${sourceCoord.name}</strong></div>
+                         <div style="margin: 4px 0; color: #e0e0e0;">To: <strong style="color: #ffffff;">${targetCoord.name}</strong></div>
+                         <div style="margin: 4px 0; color: #e0e0e0;">Severity: <span style="color: ${severity.color}; font-weight: bold;">${attack.severity.toUpperCase()}</span></div>
+                         <div style="margin-top: 10px; font-size: 12px; line-height: 1.4; color: #cccccc; border-top: 1px solid #444; padding-top: 8px;">${attack.description}</div>
+                       `);
+                   })
+                   .on("mouseout", function() {
+                     d3.select(this)
+                       .style("opacity", 0.85)
+                       .style("stroke-width", Math.max(severity.strokeWidth, 3))
+                       .style("filter", `drop-shadow(0 0 8px ${severity.color}) blur(0.5px)`);
 
-              tooltip.style("display", "none");
-            });
+                     tooltip.style("display", "none");
+                   });
         }
       }
     });
