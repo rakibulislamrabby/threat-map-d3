@@ -125,7 +125,7 @@ const SimpleWorldMap: React.FC = () => {
 
         // Change border color on hover
         d3.select(this)
-          .style("stroke", "#0f22f2")
+          .style("stroke", "#6a6e6d")
           .style("stroke-width", "2px");
         //   .style("fill", "#aaaaaa");
 

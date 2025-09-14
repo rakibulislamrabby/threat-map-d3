@@ -27,7 +27,7 @@ export default function Home() {
   return (
     <div className={styles.page}>
       <main className={styles.main}>
-        <h1 style={{ 
+        {/* <h1 style={{ 
           textAlign: 'center', 
           marginBottom: '2rem',
           color: '#333',
@@ -35,7 +35,7 @@ export default function Home() {
           fontWeight: 'bold'
         }}>
           Live Cyber Threat Map
-        </h1>
+        </h1> */}
         <SimpleWorldMap />
       </main>
     </div>
