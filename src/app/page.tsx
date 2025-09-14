@@ -4,8 +4,8 @@ import React from 'react';
 import dynamic from 'next/dynamic';
 import styles from './page.module.css';
 
-// Import WorldMap with SSR disabled to prevent hydration errors
-const WorldMap = dynamic(() => import('../component/WorldMap'), {
+// Import SimpleWorldMap with SSR disabled to prevent hydration errors
+const SimpleWorldMap = dynamic(() => import('../component/SimpleWorldMap'), {
   ssr: false,
   loading: () => (
     <div style={{
@@ -36,7 +36,7 @@ export default function Home() {
         }}>
           Live Cyber Threat Map
         </h1>
-        <WorldMap />
+        <SimpleWorldMap />
       </main>
     </div>
   );
