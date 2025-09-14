@@ -14,7 +14,7 @@
   padding: 20px;
   gap: 20px;
   font-family: var(--font-geist-sans);
-  background: #ffffff;
+  background: #3e3a3a;
 }
 
 @media (prefers-color-scheme: dark) {

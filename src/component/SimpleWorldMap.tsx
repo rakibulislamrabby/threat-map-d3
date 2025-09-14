@@ -115,18 +115,18 @@ const SimpleWorldMap: React.FC = () => {
         const feature = d as CountryFeature;
         return `subunit-boundary subunit gray-country ${feature.id}`;
       })
-      .style("fill", "#cccccc") // All countries same gray color
-      .style("stroke", "#999999")
+       .style("fill", "#2a2a2a") // Dark gray for countries
+       .style("stroke", "#444444")
       .style("stroke-width", "1px")
       .style("stroke-linejoin", "round")
       .attr("d", path as any)
       .on("mouseover", function(event, d) {
         const feature = d as CountryFeature;
 
-        // Change border color on hover
-        d3.select(this)
-          .style("stroke", "#6a6e6d")
-          .style("stroke-width", "2px");
+         // Change border color on hover
+         d3.select(this)
+           .style("stroke", "#666666")
+           .style("stroke-width", "2px");
         //   .style("fill", "#aaaaaa");
 
 
@@ -140,14 +140,14 @@ const SimpleWorldMap: React.FC = () => {
           .html(`<p>${feature.properties.name}</p>`);
       })
       .on("mouseout", function() {
-        // Reset border color
-        d3.select(this)
-          .style("stroke", "#999999")
-          .style("stroke-width", "1px");
+         // Reset border color
+         d3.select(this)
+           .style("stroke", "#444444")
+           .style("stroke-width", "1px");
 
-        // Reset all countries to original gray color
-        countriesGroup.selectAll(".subunit")
-          .style("fill", "#cccccc"); // Original gray color
+         // Reset all countries to original dark gray color
+         countriesGroup.selectAll(".subunit")
+           .style("fill", "#2a2a2a"); // Original dark gray color
 
         tooltip.style("display", "none");
       });
@@ -168,10 +168,11 @@ const SimpleWorldMap: React.FC = () => {
         }
       });
 
-      // Clear all animations and particles
-      svg.selectAll('.attack-particle').remove();
-      svg.selectAll('.attack-arc').remove();
-      svg.selectAll('.attack-pointer').remove();
+       // Clear all animations and particles
+       svg.selectAll('.attack-particle').remove();
+       svg.selectAll('.attack-arc').remove();
+       svg.selectAll('.attack-pointer').remove();
+       svg.selectAll('.attack-pointer-outline').remove();
     };
   }, []);
 
@@ -425,21 +426,35 @@ const SimpleWorldMap: React.FC = () => {
       if (coord) {
         const point = projection([coord.lng, coord.lat]);
         if (point) {
-          // Create enhanced outlined red circle
-          const pointer = pointersGroup
-            .append("circle")
-            .attr("class", `attack-pointer ${countryId}`)
-            .attr("cx", point[0])
-            .attr("cy", point[1])
-            .attr("r", 6) // Increased size
-            .style("fill", "rgba(255, 0, 0, 0.2)") // Added subtle fill
-            .style("stroke", "#ff0000")
-            .style("stroke-width", "3px") // Increased stroke width
-            .style("opacity", 1) // Full opacity
-            .style("filter", "drop-shadow(0 0 8px #ff0000)") // Enhanced glow
-            .style("pointer-events", "none");
+           // Create enhanced outlined red circle with multiple outlines
+           const pointer = pointersGroup
+             .append("circle")
+             .attr("class", `attack-pointer ${countryId}`)
+             .attr("cx", point[0])
+             .attr("cy", point[1])
+             .attr("r", 6) // Increased size
+             .style("fill", "rgba(255, 0, 0, 0.3)") // Enhanced fill
+             .style("stroke", "#ff0000")
+             .style("stroke-width", "3px") // Increased stroke width
+             .style("opacity", 1) // Full opacity
+             .style("filter", "drop-shadow(0 0 8px #ff0000) drop-shadow(0 0 4px #ffffff)") // Enhanced glow with white outline
+             .style("pointer-events", "none");
 
-          // Add more dramatic pulsing animation
+           // Add outer white outline circle for better visibility
+           const outlinePointer = pointersGroup
+             .append("circle")
+             .attr("class", `attack-pointer-outline ${countryId}`)
+             .attr("cx", point[0])
+             .attr("cy", point[1])
+             .attr("r", 8) // Slightly larger than main pointer
+             .style("fill", "none")
+             .style("stroke", "#ffffff")
+             .style("stroke-width", "1px")
+             .style("opacity", 0.8)
+             .style("filter", "drop-shadow(0 0 2px #ffffff)")
+             .style("pointer-events", "none");
+
+          // Add more dramatic pulsing animation for both pointer and outline
           const animatePulse = () => {
             pointer
               .transition()
@@ -451,6 +466,18 @@ const SimpleWorldMap: React.FC = () => {
               .attr("r", 6)
               .style("opacity", 1)
               .on("end", animatePulse);
+
+            // Animate the outline pointer as well
+            outlinePointer
+              .transition()
+              .duration(1500)
+              .attr("r", 12) // Outline grows with main pointer
+              .style("opacity", 0.3)
+              .transition()
+              .duration(1500)
+              .attr("r", 8)
+              .style("opacity", 0.8)
+              .on("end", () => {}); // Outline animation follows main pointer
           };
 
           animatePulse();
@@ -684,7 +711,7 @@ const SimpleWorldMap: React.FC = () => {
       height: '100vh',
       position: 'relative',
       overflow: 'hidden',
-      background: '#ffffff'
+      background: '#1a1a1a'
     }}>
       <svg 
         ref={svgRef}
@@ -693,23 +720,24 @@ const SimpleWorldMap: React.FC = () => {
         viewBox={`0 0 ${width} ${height}`}
         style={{ width: '100%', height: '100%' }}
       />
-      <div
-        ref={tooltipRef}
-        style={{
-          color: '#222',
-          backgroundColor: '#fff',
-          padding: '0.5em',
-          textShadow: '#f5f5f5 0 1px 0',
-          borderRadius: '2px',
-          opacity: 0.9,
-          position: 'absolute',
-          pointerEvents: 'none',
-          fontSize: '13px',
-          zIndex: 1000,
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          display: 'none'
-        }}
-      />
+       <div
+         ref={tooltipRef}
+         style={{
+           color: '#ffffff',
+           backgroundColor: '#2a2a2a',
+           padding: '0.5em',
+           textShadow: 'none',
+           borderRadius: '4px',
+           opacity: 0.95,
+           position: 'absolute',
+           pointerEvents: 'none',
+           fontSize: '13px',
+           zIndex: 1000,
+           boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+           border: '1px solid #444444',
+           display: 'none'
+         }}
+       />
     </div>
   );
 };

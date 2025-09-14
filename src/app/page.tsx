@@ -16,9 +16,7 @@ const D3AnimatedArcs = dynamic(() => import('../component/D3AnimatedArcs'), {
       justifyContent: 'center',
       background: '#000000'
     }}>
-      <div style={{ color: '#ffffff', fontSize: '16px' }}>
-        Loading animated threat map...
-      </div>
+     
     </div>
   )
 });
@@ -30,7 +28,7 @@ export default function Home() {
                 <h1 style={{
                   textAlign: 'center',
                   marginBottom: '2rem',
-                  color: '#2c3e50',
+                  color: '#ffffff',
                   fontSize: '2rem',
                   fontWeight: 'bold'
                 }}>
