@@ -63,24 +63,24 @@ const SimpleWorldMap: React.FC = () => {
       .translate([width / 2, height / 2])
       .scale((width - 1) / 2 / Math.PI);
 
-    // Set up zoom behavior
+    // Set up zoom behavior (zoom only, no drag/pan)
     const zoom = d3.zoom<SVGSVGElement, unknown>()
       .scaleExtent([1, 8])
+      .filter((event) => {
+        // Only allow wheel events (zoom), block all drag events
+        return event.type === 'wheel';
+      })
       .on("zoom", (event) => {
         const { transform } = event;
-        svg.selectAll('.countries-group')
-          .attr("transform", transform.toString());
+        // Always zoom from center, ignore any translation
+        const centerTransform = d3.zoomIdentity
+          .translate(width / 2, height / 2)
+          .scale(transform.k)
+          .translate(-width / 2, -height / 2);
         
-        // Update attack arcs when projection changes
-        svg.selectAll('.attack-arc')
-          .each(function() {
-            const arc = d3.select(this as SVGPathElement);
-            const sourceId = arc.attr('data-source');
-            const targetId = arc.attr('data-target');
-            if (sourceId && targetId) {
-              updateArcPath(arc, sourceId, targetId, projection);
-            }
-          });
+        // Transform the main group (contains both countries and arcs)
+        svg.selectAll('.main-group')
+          .attr("transform", centerTransform.toString());
       });
 
     svg.call(zoom);
@@ -98,8 +98,12 @@ const SimpleWorldMap: React.FC = () => {
     // Convert topojson to geojson
     const countries = topojson.feature(worldData as any, worldData.objects.world_subunits as any);
 
-    // Create countries group
-    const countriesGroup = svg.append("g")
+    // Create main transform group for both countries and arcs
+    const mainGroup = svg.append("g")
+      .attr("class", "main-group");
+
+    // Create countries group inside main group
+    const countriesGroup = mainGroup.append("g")
       .attr("class", "countries-group");
 
     // Add countries - ALL SAME GRAY COLOR with hover border effect
@@ -118,15 +122,17 @@ const SimpleWorldMap: React.FC = () => {
       .attr("d", path as any)
       .on("mouseover", function(event, d) {
         const feature = d as CountryFeature;
-        
+
         // Change border color on hover
         d3.select(this)
           .style("stroke", "#0f22f2")
           .style("stroke-width", "2px");
-        
+        //   .style("fill", "#aaaaaa");
+
+
         // Show tooltip with country name
-        const [mouseX, mouseY] = d3.pointer(event, svg.node());
-        
+        const [mouseX, mouseY] = d3.pointer(event, svgRef.current);
+
         tooltip
           .style("display", "block")
           .style("left", `${mouseX + 5}px`)
@@ -138,12 +144,19 @@ const SimpleWorldMap: React.FC = () => {
         d3.select(this)
           .style("stroke", "#999999")
           .style("stroke-width", "1px");
-        
+
+        // Reset all countries to original gray color
+        countriesGroup.selectAll(".subunit")
+          .style("fill", "#cccccc"); // Original gray color
+
         tooltip.style("display", "none");
       });
 
-    // Add animated attack arcs
-    addAnimatedAttackArcs(svg, projection, tooltip);
+    // Add animated attack arcs inside main group
+    addAnimatedAttackArcs(mainGroup, projection, tooltip, svgRef.current);
+
+    // Add attack pointers (red glowing circles)
+    addAttackPointers(mainGroup, projection);
 
     // Cleanup function
     return () => {
@@ -154,10 +167,11 @@ const SimpleWorldMap: React.FC = () => {
           clearInterval(intervalId);
         }
       });
-      
+
       // Clear all animations and particles
       svg.selectAll('.attack-particle').remove();
       svg.selectAll('.attack-arc').remove();
+      svg.selectAll('.attack-pointer').remove();
     };
   }, []);
 
@@ -201,13 +215,69 @@ const SimpleWorldMap: React.FC = () => {
     }
   };
 
+  // Function to add attack pointers (red glowing circles)
+  const addAttackPointers = (mainGroup: d3.Selection<SVGGElement, unknown, null, undefined>, projection: d3.GeoProjection) => {
+    const coordinates = countryCoordinates as { [key: string]: CountryCoordinate };
+    const threats = threatData as ThreatData;
+
+    // Create pointers group
+    const pointersGroup = mainGroup.append("g")
+      .attr("class", "attack-pointers");
+
+    // Collect unique attack locations
+    const attackLocations = new Set<string>();
+    threats.attacks.forEach(attack => {
+      attackLocations.add(attack.source);
+      attackLocations.add(attack.target);
+    });
+
+    // Add pointers for each unique location
+    attackLocations.forEach(countryId => {
+      const coord = coordinates[countryId];
+      if (coord) {
+        const point = projection([coord.lng, coord.lat]);
+        if (point) {
+          // Create small outlined red circle
+          const pointer = pointersGroup
+            .append("circle")
+            .attr("class", `attack-pointer ${countryId}`)
+            .attr("cx", point[0])
+            .attr("cy", point[1])
+            .attr("r", 4)
+            .style("fill", "none")
+            .style("stroke", "#ff0000")
+            .style("stroke-width", "2px")
+            .style("opacity", 0.9)
+            .style("filter", "drop-shadow(0 0 4px #ff0000)")
+            .style("pointer-events", "none");
+
+          // Add subtle pulsing animation
+          const animatePulse = () => {
+            pointer
+              .transition()
+              .duration(2000)
+              .attr("r", 6)
+              .style("opacity", 0.6)
+              .transition()
+              .duration(2000)
+              .attr("r", 4)
+              .style("opacity", 0.9)
+              .on("end", animatePulse);
+          };
+
+          animatePulse();
+        }
+      }
+    });
+  };
+
   // Function to add animated attack arcs
-  const addAnimatedAttackArcs = (svg: d3.Selection<SVGSVGElement, unknown, null, undefined>, projection: d3.GeoProjection, tooltip: d3.Selection<HTMLDivElement, unknown, null, undefined>) => {
+  const addAnimatedAttackArcs = (mainGroup: d3.Selection<SVGGElement, unknown, null, undefined>, projection: d3.GeoProjection, tooltip: d3.Selection<HTMLDivElement, unknown, null, undefined>, svgElement: SVGSVGElement) => {
     const coordinates = countryCoordinates as { [key: string]: CountryCoordinate };
     const threats = threatData as ThreatData;
 
     // Create arcs group
-    const arcsGroup = svg.append("g")
+    const arcsGroup = mainGroup.append("g")
       .attr("class", "attack-arcs");
 
     // Add animated arcs for each attack
@@ -357,14 +427,14 @@ const SimpleWorldMap: React.FC = () => {
             setTimeout(createParticleStream, index * 300);
           }
 
-          // Hover effects
-          arcPath
-            .on("mouseover", function(event) {
-              d3.select(this)
-                .style("opacity", 1)
-                .style("stroke-width", severity.strokeWidth * 1.5);
+                 // Hover effects
+                 arcPath
+                   .on("mouseover", function(event) {
+                     d3.select(this)
+                       .style("opacity", 1)
+                       .style("stroke-width", severity.strokeWidth * 1.5);
 
-              const [mouseX, mouseY] = d3.pointer(event, svg.node());
+                     const [mouseX, mouseY] = d3.pointer(event, svgElement);
 
               tooltip
                 .style("display", "block")
