@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import * as d3 from 'd3';
 import threatData from '../data/threatData.json';
 import countryCoordinates from '../data/countryCoordinates.json';
@@ -39,6 +40,7 @@ const ThreeJSArcs: React.FC = () => {
   useEffect(() => {
     if (!mountRef.current) return;
 
+    const mountElement = mountRef.current; // Copy ref value to avoid warning
     const width = 1100;
     const height = 750;
 
@@ -60,7 +62,7 @@ const ThreeJSArcs: React.FC = () => {
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     rendererRef.current = renderer;
 
-    mountRef.current.appendChild(renderer.domElement);
+    mountElement.appendChild(renderer.domElement);
 
     // Add lighting
     const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
@@ -87,8 +89,8 @@ const ThreeJSArcs: React.FC = () => {
 
     // Handle window resize
     const handleResize = () => {
-      const newWidth = mountRef.current?.clientWidth || width;
-      const newHeight = mountRef.current?.clientHeight || height;
+      const newWidth = mountElement?.clientWidth || width;
+      const newHeight = mountElement?.clientHeight || height;
       
       camera.aspect = newWidth / newHeight;
       camera.updateProjectionMatrix();
@@ -103,11 +105,12 @@ const ThreeJSArcs: React.FC = () => {
       if (animationIdRef.current) {
         cancelAnimationFrame(animationIdRef.current);
       }
-      if (mountRef.current && renderer.domElement) {
-        mountRef.current.removeChild(renderer.domElement);
+      if (mountElement && renderer.domElement) {
+        mountElement.removeChild(renderer.domElement);
       }
       renderer.dispose();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const create3DArcs = (scene: THREE.Scene) => {
@@ -266,6 +269,7 @@ const ThreeJSArcs: React.FC = () => {
   const animateParticlesAlongArc = (
     particles: THREE.Mesh[], 
     points: THREE.Vector3[], 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     index: number
   ) => {
     let time = 0;

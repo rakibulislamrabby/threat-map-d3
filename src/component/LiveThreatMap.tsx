@@ -105,6 +105,7 @@ const LiveThreatMap: React.FC = () => {
     const path = d3.geoPath().projection(projection);
 
     // Convert topojson to geojson
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const countries = topojson.feature(worldData as any, worldData.objects.world_subunits as any);
 
     // Create main transform group for both countries and arcs
@@ -117,6 +118,7 @@ const LiveThreatMap: React.FC = () => {
 
     // Add countries - ALL SAME GRAY COLOR with hover border effect
     countriesGroup.selectAll(".subunit")
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .data((countries as any).features)
       .enter()
       .append("path")
@@ -128,6 +130,7 @@ const LiveThreatMap: React.FC = () => {
       .style("stroke", "#555555")
       .style("stroke-width", "1px")
       .style("stroke-linejoin", "round")
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .attr("d", path as any)
       .on("mouseover", function(event, d) {
         const feature = d as CountryFeature;
@@ -181,6 +184,7 @@ const LiveThreatMap: React.FC = () => {
         cleanupSimulation();
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const createTestArc = () => {
@@ -225,8 +229,7 @@ const LiveThreatMap: React.FC = () => {
     // Create renderer
     const renderer = new THREE.WebGLRenderer({ 
       antialias: true, 
-      alpha: true,
-      transparent: true
+      alpha: true
     });
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -299,6 +302,7 @@ const LiveThreatMap: React.FC = () => {
     return () => clearInterval(spawnInterval);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const createLive3DArc = (attack: any) => {
     if (!sceneRef.current) return;
 

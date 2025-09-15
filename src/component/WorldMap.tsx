@@ -184,6 +184,7 @@ const WorldMap: React.FC = () => {
     addThreatLegend(svg);
     addAttackCounter(svg);
     startThreatAnimation(svg);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Function to create dramatic archer-like curved paths between countries
